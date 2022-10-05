@@ -84,5 +84,24 @@ def add_idol_config(cfg):
     cfg.MODEL.SWIN.OUT_FEATURES = ["res2", "res3", "res4", "res5"]
     cfg.MODEL.SWIN.USE_CHECKPOINT = False
 
+    ## support TinyViT backbone
+    cfg.MODEL.TINYVIT = CN()
+    cfg.MODEL.TINYVIT.PRETRAIN_IMG_SIZE = 224
+    cfg.MODEL.TINYVIT.PATCH_SIZE = 4
+    cfg.MODEL.TINYVIT.EMBED_DIMS = [96, 192, 384, 576]
+    cfg.MODEL.TINYVIT.DEPTHS = [2, 2, 6, 2]
+    cfg.MODEL.TINYVIT.NUM_HEADS = [3, 6, 12, 18]
+    cfg.MODEL.TINYVIT.WINDOW_SIZE = [16, 16, 32, 16]
+    cfg.MODEL.TINYVIT.MLP_RATIO = 4.0
+    cfg.MODEL.TINYVIT.QKV_BIAS = True
+    cfg.MODEL.TINYVIT.QK_SCALE = None
+    cfg.MODEL.TINYVIT.DROP_RATE = 0.0
+    cfg.MODEL.TINYVIT.ATTN_DROP_RATE = 0.0
+    cfg.MODEL.TINYVIT.DROP_PATH_RATE = 0.3
+    cfg.MODEL.TINYVIT.APE = False
+    cfg.MODEL.TINYVIT.PATCH_NORM = True
+    cfg.MODEL.TINYVIT.OUT_FEATURES = ["res2", "res3", "res4", "res5"]
+    cfg.MODEL.TINYVIT.USE_CHECKPOINT = False
+
     # find_unused_parameters
     cfg.FIND_UNUSED_PARAMETERS = True
