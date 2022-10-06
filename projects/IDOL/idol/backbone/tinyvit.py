@@ -504,13 +504,13 @@ class TinyViT(nn.Module):
                  pretrain_img_size=224,
                  patch_size=4,
                  in_chans=3,
-                 embed_dims=[96, 192, 384, 768],
+                 embed_dims=[96, 192, 384, 576],
                  depths=[2, 2, 6, 2],
-                 num_heads=[3, 6, 12, 24],
-                 window_sizes=[7, 7, 14, 7],
+                 num_heads=[3, 6, 12, 18],
+                 window_sizes=[16, 16, 32, 16],
                  mlp_ratio=4.,
                  drop_rate=0.,
-                 drop_path_rate=0.1,
+                 drop_path_rate=0.3,
                  norm_layer=nn.LayerNorm,
                  patch_norm=True,
                  use_checkpoint=False,
@@ -748,8 +748,15 @@ class D2TinyViT(TinyViT, Backbone):
         return 32
 
 if __name__ == "__main__":
+    device = 'cuda:0'
     model = TinyViT()
+    model = model.to(device)
+    imgs = torch.ones((2,3,384,720)).to(device)
+    res = model(imgs)
+
     # img = torch.ones((1,3,384,480))
+    n_parameters = sum(p.numel()
+                       for p in model.parameters() if p.requires_grad)
     n_parameters = sum(p.numel()
                        for p in model.parameters() if p.requires_grad)
     print(f"number of params: {n_parameters}")

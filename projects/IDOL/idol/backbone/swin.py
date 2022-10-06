@@ -523,13 +523,13 @@ class SwinTransformer(nn.Module):
 
     def __init__(
         self,
-        pretrain_img_size=224,
+        pretrain_img_size=384,
         patch_size=4,
         in_chans=3,
-        embed_dim=96,
-        depths=[2, 2, 6, 2],
-        num_heads=[3, 6, 12, 24],
-        window_size=7,
+        embed_dim=192,
+        depths=[2, 2, 18, 2],
+        num_heads=[6, 12, 24, 48],
+        window_size=12,
         mlp_ratio=4.0,
         qkv_bias=True,
         qk_scale=None,
@@ -766,3 +766,15 @@ class D2SwinTransformer(SwinTransformer, Backbone):
     @property
     def size_divisibility(self):
         return 32
+
+if __name__ == "__main__":
+    device = 'cuda:0'
+    model = SwinTransformer()
+    model = model.to(device)
+    imgs = torch.ones((2,3,384,720)).to(device)
+    res = model(imgs)
+
+    # img = torch.ones((1,3,384,480))
+    n_parameters = sum(p.numel()
+                       for p in model.parameters() if p.requires_grad)
+    print(f"number of params: {n_parameters}")

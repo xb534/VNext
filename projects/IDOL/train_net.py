@@ -157,6 +157,10 @@ def main(args):
     cfg = setup(args)
     if args.eval_only:
         model = Trainer.build_model(cfg)
+        # n_parameters = sum(p.numel()
+        #                    for p in model.parameters() if p.requires_grad)
+        # print(f"number of params: {n_parameters}")
+        # return
         DetectionCheckpointer(model, save_dir=cfg.OUTPUT_DIR).resume_or_load(cfg.MODEL.WEIGHTS, resume=args.resume)
         res = Trainer.test(cfg, model)
         if comm.is_main_process():
