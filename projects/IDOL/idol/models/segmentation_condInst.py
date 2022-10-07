@@ -247,7 +247,14 @@ class CondInst_segm(nn.Module):
             # src: [N, _C, Hi, Wi],
             # mask: [N, Hi, Wi],
             # pos: [N, C, H_p, W_p]
-            src, mask = feat.decompose() 
+            src, mask = feat.decompose()
+            ########
+            m_src = nn.MaxPool2d(kernel_size=2 ** (2 - l), stride=2 ** (2 - l), padding=2 - l)
+            m_pos = nn.AvgPool2d(kernel_size=2 ** (2 - l), stride=2 ** (2 - l), padding=2 - l)
+            src = m_src(src)
+            mask = F.interpolate(mask[None].float(), size=src.shape[-2:]).to(torch.bool)[0]
+            pos[l + 1] = m_pos(pos[l + 1])
+
             src_proj_l = self.detr.input_proj[l](src)    # src_proj_l: [N, C, Hi, Wi]
             srcs.append(src_proj_l)
             masks.append(mask)
@@ -273,6 +280,8 @@ class CondInst_segm(nn.Module):
 
         query_embeds = self.detr.query_embed.weight
 
+        # res = 2
+        # srcs, masks, poses = select_one_res(srcs, masks, poses, res)
     
         hs, memory, init_reference, inter_references, inter_samples, enc_outputs_class, enc_outputs_coord_unact = \
             self.detr.transformer(srcs, masks, poses, query_embeds)
@@ -786,3 +795,19 @@ def segmentation_postprocess(
         results.pred_masks = mask
 
     return results
+
+
+def select_one_res(srcs, masks, poses, res):
+    index = res-2
+    for i in range(4):
+        if i == index:
+            continue
+        srcs[i] = torch.zeros_like(srcs[i])
+        masks[i] = torch.zeros_like(masks[i])
+        poses[i] = torch.zeros_like(poses[i])
+    return srcs, masks, poses
+
+def retrieve_elements_from_indices(tensor,indices):
+    flattened_tensor = tensor.flatten(start_dim=2)
+    output = flattened_tensor.gather(dim=2,index=indices.flatten(start_dim=2))
+    return output
