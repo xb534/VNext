@@ -85,16 +85,24 @@ class CondInst_segm(nn.Module):
         masks = []
         poses = []
         spatial_shapes = []
+        m = None
 
         for l, feat in enumerate(features[1:]):
             # src: [N, _C, Hi, Wi],
             # mask: [N, Hi, Wi],
             # pos: [N, C, H_p, W_p]
-            src, mask = feat.decompose() 
-            src_proj_l = self.detr.input_proj[l](src)    # src_proj_l: [N, C, Hi, Wi]
+            src, mask = feat.decompose()
+            src_proj_l = self.detr.input_proj[l](src)  # src_proj_l: [N, C, Hi, Wi]
+            if l == 0:
+                m = mask
+            # m = masks[0]  # [N, H, W]
+            mask = F.interpolate(m[None].float(), size=src_proj_l.shape[-2:]).to(torch.bool)[0]
+            pos_l = self.detr.backbone[1](NestedTensor(src_proj_l, mask)).to(src_proj_l.dtype)
+
             srcs.append(src_proj_l)
             masks.append(mask)
-            poses.append(pos[l+1])
+            # poses.append(pos[l+1])
+            poses.append(pos_l)
             n, c, h, w = src_proj_l.shape
             spatial_shapes.append((h, w))
 
@@ -243,22 +251,25 @@ class CondInst_segm(nn.Module):
         poses = []
         spatial_shapes = []
 
+        m = None
         for l, feat in enumerate(features[1:]):
             # src: [N, _C, Hi, Wi],
             # mask: [N, Hi, Wi],
             # pos: [N, C, H_p, W_p]
             src, mask = feat.decompose()
-            ########
-            m_src = nn.MaxPool2d(kernel_size=2 ** (2 - l), stride=2 ** (2 - l), padding=2 - l)
-            m_pos = nn.AvgPool2d(kernel_size=2 ** (2 - l), stride=2 ** (2 - l), padding=2 - l)
-            src = m_src(src)
-            mask = F.interpolate(mask[None].float(), size=src.shape[-2:]).to(torch.bool)[0]
-            pos[l + 1] = m_pos(pos[l + 1])
-
             src_proj_l = self.detr.input_proj[l](src)    # src_proj_l: [N, C, Hi, Wi]
+            if l==0:
+                m = mask
+            # m = masks[0]  # [N, H, W]
+            mask = F.interpolate(m[None].float(), size=src_proj_l.shape[-2:]).to(torch.bool)[0]
+            pos_l = self.detr.backbone[1](NestedTensor(src_proj_l, mask)).to(src_proj_l.dtype)
+
+            # pos[l + 1] = m_pos(pos[l + 1])
+
             srcs.append(src_proj_l)
             masks.append(mask)
-            poses.append(pos[l+1])
+            poses.append(pos_l)
+            # poses.append(pos[l+1])
             n, c, h, w = src_proj_l.shape
             spatial_shapes.append((h, w))
 
