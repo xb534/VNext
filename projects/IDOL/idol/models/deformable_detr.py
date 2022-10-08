@@ -396,6 +396,7 @@ class SetCriterion(nn.Module):
             target_masks = torch.cat(tgt_mask_list)
             num_boxes = src_masks.shape[0]
 
+            # to compute loss of different size with target and src.
             target_masks = F.interpolate(target_masks.float(), size=src_masks.shape[-2:])
 
             assert src_masks.shape == target_masks.shape
