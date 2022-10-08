@@ -71,7 +71,8 @@ class DeformableDETR(nn.Module):
             for _ in range(num_backbone_outs):
                 in_channels = backbone.num_channels[_]
                 input_proj_list.append(nn.Sequential(
-                    nn.Conv2d(in_channels, hidden_dim, kernel_size=1),
+                    # nn.Conv2d(in_channels, hidden_dim, kernel_size=1),
+                    nn.Conv2d(in_channels, hidden_dim, 2 ** (3 - _)-1, stride=2 ** (2 - _), padding=2 - _),
                     nn.GroupNorm(32, hidden_dim),
                 ))
             for _ in range(num_feature_levels - num_backbone_outs):
@@ -394,6 +395,9 @@ class SetCriterion(nn.Module):
         if len(tgt_mask_list) != 0:
             target_masks = torch.cat(tgt_mask_list)
             num_boxes = src_masks.shape[0]
+
+            target_masks = F.interpolate(target_masks.float(), size=src_masks.shape[-2:])
+
             assert src_masks.shape == target_masks.shape
 
             # src_masks: bs x [1, num_inst, num_frames, H/4, W/4] or [bs, num_inst, num_frames, H/4, W/4]
